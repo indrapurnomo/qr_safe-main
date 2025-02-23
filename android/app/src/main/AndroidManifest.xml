@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<uses-permission android:name="android.permission.INTERNET"/> 
+<!-- memberikan izin untuk akses internet -->
     <application
         android:label="qris_safe"
         android:name="${applicationName}"
