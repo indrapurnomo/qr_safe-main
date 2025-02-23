@@ -79,6 +79,7 @@ class _QRViewExampleState extends State<QRViewExample> {
         borderWidth: 10,
         cutOutSize: MediaQuery.of(context).size.width * 0.8,
       ),
+     //cameraFacing: CameraFacing.front, // Kamera depan
     );
   }
 
@@ -178,7 +179,7 @@ class _QRViewExampleState extends State<QRViewExample> {
     if (await canLaunchUrl(uri)) {
       // update jadi launchUrl(uri) karena sudah deprecated 
     print('canLaunchUrl returned true'); // Log untuk debugging
-      await launchUrl(uri);
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
     print('URL launched successfully'); // Log untuk debugging
     } else {
     print('canLaunchUrl returned false'); // Log untuk debugging
