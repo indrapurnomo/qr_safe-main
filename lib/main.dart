@@ -201,7 +201,7 @@ Future<void> _getScanResult(String analysisId) async {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Warning'),
-        content: const Text('This URL is detected as dangerous!'),
+        content: const Text('Link/URL Website Berbahaya.'),
         actions: <Widget>[
           TextButton(
             child: const Text('OK'),
@@ -220,7 +220,7 @@ Future<void> _getScanResult(String analysisId) async {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Safe URL'),
-        content: const Text('This URL is safe. Would you like to open it?'),
+        content: const Text('Url ini aman, silahkan dibuka'),
         actions: <Widget>[
           TextButton(
             child: const Text('Open'),
