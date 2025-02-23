@@ -94,37 +94,106 @@ class _QRViewExampleState extends State<QRViewExample> {
     });
   }
 
-  Future<void> _checkWithVirusTotal(String url) async {
-    const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e'; //API VirusTotal
-    final encodedUrl = base64Url.encode(utf8.encode(url)).replaceAll('=', ''); // Encode and remove padding
-    final apiUrl = 'https://www.virustotal.com/api/v3/urls/$encodedUrl';
+  // Future<void> _checkWithVirusTotal(String url) async {
+  //   const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e'; //API VirusTotal
+  //   final encodedUrl = base64Url.encode(utf8.encode(url)).replaceAll('=', ''); // Encode and remove padding
+  //   final apiUrl = 'https://www.virustotal.com/api/v3/urls/$encodedUrl';
 
-    try {
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {
-          'x-apikey': apiKey,
-          'Content-Type': 'application/json',
-        },
-      );
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'x-apikey': apiKey,
+  //         'Content-Type': 'application/json',
+  //       },
+  //     );
 
-      if (response.statusCode == 200) {
-        final jsonResponse = json.decode(response.body);
-        final scanResult = jsonResponse['data']['attributes']['last_analysis_stats'];
+  //     if (response.statusCode == 200) {
+  //       final jsonResponse = json.decode(response.body);
+  //       final scanResult = jsonResponse['data']['attributes']['last_analysis_stats'];
 
-        // Perubahan: memeriksa apakah ada deteksi malicious atau suspicious
-        if (scanResult['malicious'] > 0 || scanResult['suspicious'] > 0) {
-          _showDangerousUrlDialog(); // Menampilkan dialog peringatan
-        } else {
-          _showSafeUrlDialog(url); // Menampilkan dialog untuk membuka URL
-        }
-      } else {
-        _showErrorDialog('Error: Unable to scan the URL with VirusTotal.');
-      }
-    } catch (e) {
-      _showErrorDialog('Error: $e');
+  //       // Perubahan: memeriksa apakah ada deteksi malicious atau suspicious
+  //       if (scanResult['malicious'] > 0 || scanResult['suspicious'] > 0) {
+  //         _showDangerousUrlDialog(); // Menampilkan dialog peringatan
+  //       } else {
+  //         _showSafeUrlDialog(url); // Menampilkan dialog untuk membuka URL
+  //       }
+  //     } else {
+  //       _showErrorDialog('Error: Unable to scan the URL with VirusTotal.');
+  //     }
+  //   } catch (e) {
+  //     _showErrorDialog('Error: $e');
+  //   }
+  // }
+
+Future<void> _checkWithVirusTotal(String url) async {
+  const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e';
+  const scanUrl = 'https://www.virustotal.com/api/v3/urls';
+
+  try {
+    // Mengirim URL untuk diproses
+    final response = await http.post(
+      Uri.parse(scanUrl),
+      headers: {
+        'x-apikey': apiKey,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'url=$url',
+    );
+
+    print('Response from VirusTotal (Scan): ${response.body}'); // Debug log
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final jsonResponse = json.decode(response.body);
+      final analysisId = jsonResponse['data']['id'];
+
+      // Wait beberapa detik sebelum mengambil hasil scan
+      await Future.delayed(const Duration(seconds: 5));
+
+      _getScanResult(analysisId); // Memanggil fungsi untuk mengambil hasil scan
+    } else {
+      _showErrorDialog('Gagal mengirim URL ke VirusTotal.\n${response.body}');
     }
+  } catch (e) {
+    _showErrorDialog('Terjadi kesalahan: $e');
   }
+}
+
+// Fungsi untuk mengambil hasil scan berdasarkan analysis_id
+Future<void> _getScanResult(String analysisId) async {
+  const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e';
+  final resultUrl = 'https://www.virustotal.com/api/v3/analyses/$analysisId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(resultUrl),
+      headers: {
+        'x-apikey': apiKey,
+      },
+    );
+
+    print('Response from VirusTotal (Result): ${response.body}'); // Debug log
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      final scanResult = jsonResponse['data']['attributes']['stats'];
+
+      int malicious = scanResult['malicious'];
+      int suspicious = scanResult['suspicious'];
+
+      if (malicious > 0 || suspicious > 0) {
+        _showDangerousUrlDialog();
+      } else {
+        _showSafeUrlDialog(jsonResponse['meta']['url_info']['url']);
+      }
+    } else {
+      _showErrorDialog('Gagal mengambil hasil scan.\n${response.body}');
+    }
+  } catch (e) {
+    _showErrorDialog('Terjadi kesalahan: $e');
+  }
+}
+
 
   // Perubahan: Menampilkan dialog peringatan jika URL berbahaya
   void _showDangerousUrlDialog() {
@@ -172,20 +241,58 @@ class _QRViewExampleState extends State<QRViewExample> {
   }
 
   // Perubahan: Fungsi untuk membuka URL di browser
-  void _launchURL(String url) async {
-    final uri = Uri.parse(url.trim()); // Mendefinisikan uri
-    print('Trying to launch URL: $url'); // Log untuk debugging
-    // update jadi canLaunchUrl(uri) karena sudah deprecated 
-    if (await canLaunchUrl(uri)) {
-      // update jadi launchUrl(uri) karena sudah deprecated 
-    print('canLaunchUrl returned true'); // Log untuk debugging
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    print('URL launched successfully'); // Log untuk debugging
-    } else {
-    print('canLaunchUrl returned false'); // Log untuk debugging
-      _showErrorDialog('Could not launch $url');
+  // void _launchURL(String url) async {
+  //   final uri = Uri.parse(url.trim()); // Mendefinisikan uri
+  //   print('Trying to launch URL: $url'); // Log untuk debugging
+  //   // update jadi canLaunchUrl(uri) karena sudah deprecated 
+  //   if (await canLaunchUrl(uri)) {
+  //     // update jadi launchUrl(uri) karena sudah deprecated 
+  //   print('canLaunchUrl returned true'); // Log untuk debugging
+  //     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  //   print('URL launched successfully'); // Log untuk debugging
+  //   } else {
+  //   print('canLaunchUrl returned false'); // Log untuk debugging
+  //     _showErrorDialog('Could not launch $url');
+  //   }
+  // }
+
+void _launchURL(String url) async {
+  try {
+    final Uri uri = Uri.parse(url.trim());
+
+    print('Trying to launch URL: $url'); // Debugging log
+
+    // Gunakan intent khusus untuk Chrome di Android
+    final Uri chromeUri = Uri.parse("googlechrome://navigate?url=$url");
+
+    if (await canLaunchUrl(chromeUri)) {
+      await launchUrl(chromeUri);
+      print('URL launched in Chrome'); // Debugging log
+      return;
     }
+
+    // Jika Chrome tidak tersedia, pakai browser default
+    if (!await canLaunchUrl(uri)) {
+      print('canLaunchUrl returned false'); // Debugging log
+      _showErrorDialog('Tidak dapat membuka URL: $url');
+      return;
+    }
+
+    final bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (launched) {
+      print('URL launched successfully'); // Debugging log
+    } else {
+      print('Failed to launch URL'); // Debugging log
+      _showErrorDialog('Gagal membuka URL: $url');
+    }
+  } catch (e) {
+    print('Exception when launching URL: $e'); // Debugging log
+    _showErrorDialog('Terjadi kesalahan: $e');
   }
+}
+
+
 
   void _showErrorDialog(String message) {
     showDialog(
