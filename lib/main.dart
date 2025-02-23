@@ -34,8 +34,8 @@ class _QRViewExampleState extends State<QRViewExample> {
   @override
   void reassemble() {
     super.reassemble();
-    controller!.pauseCamera();
-    controller!.resumeCamera();
+    controller?.pauseCamera();
+    controller?.resumeCamera();
   }
 
   @override
