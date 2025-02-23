@@ -41,7 +41,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('QR Safe Scanner')),
+      appBar: AppBar(title: const Text('QR Safe Scanner Kelompok7')),
       body: Column(
         children: <Widget>[
           Expanded(flex: 4, child: _buildQrView(context)),
@@ -257,41 +257,19 @@ Future<void> _getScanResult(String analysisId) async {
   // }
 
 void _launchURL(String url) async {
-  try {
-    final Uri uri = Uri.parse(url.trim());
+  final Uri uri = Uri.parse(url.trim());
 
-    print('Trying to launch URL: $url'); // Debugging log
-
-    // Gunakan intent khusus untuk Chrome di Android
-    final Uri chromeUri = Uri.parse("googlechrome://navigate?url=$url");
-
-    if (await canLaunchUrl(chromeUri)) {
-      await launchUrl(chromeUri);
-      print('URL launched in Chrome'); // Debugging log
-      return;
-    }
-
-    // Jika Chrome tidak tersedia, pakai browser default
-    if (!await canLaunchUrl(uri)) {
-      print('canLaunchUrl returned false'); // Debugging log
-      _showErrorDialog('Tidak dapat membuka URL: $url');
-      return;
-    }
-
-    final bool launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-
-    if (launched) {
-      print('URL launched successfully'); // Debugging log
-    } else {
-      print('Failed to launch URL'); // Debugging log
-      _showErrorDialog('Gagal membuka URL: $url');
-    }
-  } catch (e) {
-    print('Exception when launching URL: $e'); // Debugging log
-    _showErrorDialog('Terjadi kesalahan: $e');
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication, // Memastikan dibuka di browser eksternal
+    );
+  } else {
+    // Menggunakan metode fallback dengan intent Android langsung
+    final fallbackUri = Uri.parse("https://www.google.com/search?q=$url");
+    await launchUrl(fallbackUri, mode: LaunchMode.externalApplication);
   }
 }
-
 
 
   void _showErrorDialog(String message) {
