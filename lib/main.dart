@@ -172,10 +172,11 @@ class _QRViewExampleState extends State<QRViewExample> {
 
   // Perubahan: Fungsi untuk membuka URL di browser
   void _launchURL(String url) async {
-    // ignore: deprecated_member_use / abaikan sudah deprecated hhe
-    if (await canLaunch(url)) {
-      // ignore: deprecated_member_use / abaikan sudah deprecated hhe
-      await launch(url);
+    final uri = Uri.parse(url); // Mendefinisikan uri
+    // update jadi canLaunchUrl(uri) karena sudah deprecated 
+    if (await canLaunchUrl(uri)) {
+      // update jadi launchUrl(uri) karena sudah deprecated 
+      await launchUrl(uri);
     } else {
       _showErrorDialog('Could not launch $url');
     }
