@@ -95,7 +95,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   }
 
   // Future<void> _checkWithVirusTotal(String url) async {
-  //   const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e'; //API VirusTotal
+  //   const apiKey = 'API'; //API VirusTotal
   //   final encodedUrl = base64Url.encode(utf8.encode(url)).replaceAll('=', ''); // Encode and remove padding
   //   final apiUrl = 'https://www.virustotal.com/api/v3/urls/$encodedUrl';
 
@@ -127,7 +127,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   // }
 
 Future<void> _checkWithVirusTotal(String url) async {
-  const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e';
+  const apiKey = 'API;
   const scanUrl = 'https://www.virustotal.com/api/v3/urls';
 
   try {
@@ -161,7 +161,7 @@ Future<void> _checkWithVirusTotal(String url) async {
 
 // Fungsi untuk mengambil hasil scan berdasarkan analysis_id
 Future<void> _getScanResult(String analysisId) async {
-  const apiKey = '79a5d969d9e96f6a6e2101d6827780b7d2630d2d6e49118726ca06978501996e';
+  const apiKey = 'API';
   final resultUrl = 'https://www.virustotal.com/api/v3/analyses/$analysisId';
 
   try {
